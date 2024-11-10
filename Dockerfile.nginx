@@ -20,6 +20,8 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN nginx -t
 
+USER nginxuser
+
 EXPOSE 8080 8081
 
 # Start Supervisor, which in turn starts Nginx

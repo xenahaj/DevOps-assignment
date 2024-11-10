@@ -1,5 +1,5 @@
 # minimal Ubuntu image to reduce size
-FROM ubuntu:20.04-slim
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install only required packages and clean up cache to reduce image size

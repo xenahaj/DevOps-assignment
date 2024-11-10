@@ -1,0 +1,31 @@
+# Exclude Git repository files
+.git
+.gitignore
+
+# Exclude Docker ignore file itself
+.dockerignore
+
+# Exclude Docker Compose files not needed during build
+docker-compose.yml
+
+# Exclude CI/CD configuration
+.github/
+.gitlab-ci.yml
+
+# Exclude IDE and editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Exclude Python cache and compiled files
+__pycache__/
+*.py[cod]
+
+# Exclude logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Exclude any other unnecessary files or directories
+.env

@@ -4,23 +4,23 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install only required packages and clean up cache to reduce image size
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nginx netcat && \
+    apt-get install -y --no-install-recommends nginx netcat supervisor && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up non-root user and prepare necessary directories in a single layer
 RUN groupadd -r nginxgroup && useradd -r -g nginxgroup nginxuser && \
-    mkdir -p /var/run/nginx && \
-    chown -R nginxuser:nginxgroup /var/run/nginx && \
-    chown -R nginxuser:nginxgroup /var/log/nginx /var/lib/nginx /etc/nginx
+    mkdir -p /var/run/nginx /var/log/supervisor && \
+    chown -R nginxuser:nginxgroup /var/run/nginx /var/log/nginx /var/lib/nginx /etc/nginx /var/log/supervisor
 
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/conf.d/ /etc/nginx/conf.d/
 
-RUN nginx -t
+# Copy Supervisor configuration
+COPY supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Use non-root user to start the server
-USER nginxuser
+RUN nginx -t
 
 EXPOSE 8080 8081
 
-CMD ["sh", "-c", "rm -f /var/run/nginx/nginx.pid && nginx -g 'daemon off;'"]
+# Start Supervisor, which in turn starts Nginx
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

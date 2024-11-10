@@ -33,7 +33,7 @@ jobs:
         run: echo "[BUILD-INFO] Building Tester Image" && docker build --no-cache -t tester-image -f Dockerfile.python .
 
       - name: Show Image Size for Nginx Image
-        run: echo "[SIZE-INFO] Nginx Image Size:" && docker images nginx-image --format "Size: {{.Size}}"
+        run: echo "[SIZE-INFO] Nginx Image Size:" && docker images nginx-image --format \"Size: {{.Size}}\"
 
       - name: Run Docker Compose
         run: echo "[RUN-INFO] Running Docker Compose" && docker compose up -d

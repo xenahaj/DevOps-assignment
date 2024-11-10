@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install only required packages and clean up cache to reduce image size
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nginx curl && \
+    apt-get install -y --no-install-recommends nginx && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up non-root user and prepare necessary directories in a single layer
@@ -22,8 +22,5 @@ RUN nginx -t
 USER nginxuser
 
 EXPOSE 8080 8081
-
-HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
- CMD curl -f http://localhost:8080 || exit 1
 
 CMD ["sh", "-c", "rm -f /var/run/nginx/nginx.pid && nginx -g 'daemon off;'"]

@@ -13,7 +13,7 @@ services:
       timeout: 2s
       retries: 5
 
-
+      
   tester:
     image: tester-image
     container_name: nginx_tester

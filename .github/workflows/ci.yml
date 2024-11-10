@@ -80,13 +80,13 @@ jobs:
           fi
 
       - name: Create Artifact File
-        run: echo "[ARTIFACT-INFO] Creating artifact file" && echo "${{ steps.result_step.outputs.test_result }}" > ${{ steps.result_step.outputs.test_result }}
+        run: echo "[ARTIFACT-INFO] Creating artifact file" && echo "${{ steps.result_step.outputs.test_result }}" > artifact_result.txt
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.result_step.outputs.test_result }}
-          path: ${{ steps.result_step.outputs.test_result }}
+          name: test_result
+          path: artifact_result.txt
 
       - name: Tear Down
         if: always()

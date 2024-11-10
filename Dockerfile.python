@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache libffi-dev openssl-dev && \
     apk add --no-cache --virtual .build-deps gcc musl-dev && \
     pip install --no-cache-dir requests && \
-    apk del .build-deps  # Remove build dependencies to reduce size
+    apk del .build-deps
 
 COPY test_nginx.py /app/test_nginx.py
 

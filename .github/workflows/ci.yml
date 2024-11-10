@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [ master, '**' ]
   pull_request:
-    branches: [main]
+    branches: [ master, '**' ]
 
 jobs:
   build-test:
@@ -45,12 +45,13 @@ jobs:
         id: result_step
 
       - name: Create Artifact File
-        run: echo "${{ steps.result_step.outputs.test_result }}" > ${{ steps.result_step.outputs.test_result }}
+        run: echo "${{ steps.result_step.outputs.test_result }}" > result.txt
 
+      - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.result_step.outputs.test_result }}
-          path: ${{ steps.result_step.outputs.test_result }}
+          path: result.txt
 
       - name: Tear Down
         if: always()

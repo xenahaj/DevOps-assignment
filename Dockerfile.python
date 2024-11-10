@@ -1,8 +1,16 @@
-FROM python:3.9-slim
-RUN adduser --disabled-password --gecos '' pyuser
-USER pyuser
+# using Alpine for a smaller image size
+FROM python:3.9-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev
+
+COPY test_nginx.py /app/test_nginx.py
 
 RUN pip install --no-cache-dir requests
-COPY test_nginx.py /app/test_nginx.py
-WORKDIR /app
+
+RUN adduser -D pyuser
+
+USER pyuser
+
 CMD ["python", "test_nginx.py"]

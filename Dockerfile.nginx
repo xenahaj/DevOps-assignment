@@ -1,14 +1,15 @@
-FROM ubuntu:20.04
+# minimal Ubuntu image to reduce size
+FROM ubuntu:20.04-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Install only required packages and clean up cache to reduce image size
 RUN apt-get update && \
-    apt-get install -y nginx curl && \
+    apt-get install -y --no-install-recommends nginx && \
     rm -rf /var/lib/apt/lists/*
 
-# non-root user and group
+# Set up non-root user
 RUN groupadd -r nginxgroup && useradd -r -g nginxgroup nginxuser
 
-# Create necessary directories and adjust permissions
 RUN mkdir -p /var/run/nginx && \
     chown -R nginxuser:nginxgroup /var/run/nginx && \
     chown -R nginxuser:nginxgroup /var/log/nginx /var/lib/nginx /etc/nginx
@@ -18,13 +19,9 @@ COPY nginx/conf.d/ /etc/nginx/conf.d/
 
 RUN nginx -t
 
+# Use non-root user to start the server
 USER nginxuser
 
 EXPOSE 8080 8081
 
-# Healthcheck
-HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
- CMD curl -f http://localhost:8080 || exit 1
-
-# Start Nginx
 CMD ["sh", "-c", "rm -f /var/run/nginx/nginx.pid && nginx -g 'daemon off;'"]

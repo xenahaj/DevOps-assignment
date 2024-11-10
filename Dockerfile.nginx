@@ -7,10 +7,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends nginx curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Set up non-root user
-RUN groupadd -r nginxgroup && useradd -r -g nginxgroup nginxuser
-
-RUN mkdir -p /var/run/nginx && \
+# Set up non-root user and prepare necessary directories in a single layer
+RUN groupadd -r nginxgroup && useradd -r -g nginxgroup nginxuser && \
+    mkdir -p /var/run/nginx && \
     chown -R nginxuser:nginxgroup /var/run/nginx && \
     chown -R nginxuser:nginxgroup /var/log/nginx /var/lib/nginx /etc/nginx
 

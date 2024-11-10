@@ -8,12 +8,18 @@ services:
       - "8081:8081"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
 
   tester:
     image: tester-image
     container_name: nginx_tester
     depends_on:
-      - nginx
+      nginx:
+        condition: service_healthy
     networks:
       - app-network
 

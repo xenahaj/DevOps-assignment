@@ -9,9 +9,9 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "sh", "-c", "nc -z localhost 8080 || exit 1"]
-      interval: 120s
-      timeout: 60s
-      retries: 5
+      interval: 20s
+      timeout: 10s
+      retries: 3
 
   tester:
     image: tester-image

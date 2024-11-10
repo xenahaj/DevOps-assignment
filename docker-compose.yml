@@ -10,7 +10,7 @@ services:
     healthcheck:
       test: ["CMD", "sh", "-c", "nc -z localhost 8080 || exit 1"]
       interval: 20s
-      timeout: 10s
+      timeout: 15s
       retries: 3
 
   tester:

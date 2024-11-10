@@ -5,14 +5,17 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
-def check_server(url, retries=5, delay=2):
+def check_server(url, expected_status, retries=5, delay=2):
     for attempt in range(1, retries + 1):
         try:
             response = requests.get(url, timeout=5)
             logging.info(f"Attempt {attempt}: Checked {url} - Status Code {response.status_code}")
-            if response.status_code == 200:
-                logging.debug(f"Content: {response.text}")
-            return response.status_code < 400
+            if response.status_code == expected_status:
+                logging.info(f"{url} returned expected status code {expected_status}.")
+                return True
+            else:
+                logging.warning(f"{url} did not return expected status code {expected_status}. Received {response.status_code} instead.")
+                return False
         except requests.exceptions.RequestException as e:
             logging.warning(f"Attempt {attempt}: Error connecting to {url}: {e}")
             if attempt < retries:
@@ -20,13 +23,18 @@ def check_server(url, retries=5, delay=2):
     return False
 
 def main():
-    servers = ["http://nginx:8080", "http://nginx:8081"]
+    servers = [
+        {"url": "http://nginx:8080", "expected_status": 200},
+        {"url": "http://nginx:8081", "expected_status": 503}
+    ]
     all_passed = True
     for server in servers:
-        if not check_server(server):
+        if not check_server(server["url"], server["expected_status"]):
             all_passed = False
     if not all_passed:
         sys.exit(1)
+    else:
+        logging.info("All servers responded with expected status codes.")
 
 if __name__ == "__main__":
     main()

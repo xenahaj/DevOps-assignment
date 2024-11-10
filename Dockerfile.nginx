@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install only required packages and clean up cache to reduce image size
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nginx && \
+    apt-get install -y --no-install-recommends nginx curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up non-root user

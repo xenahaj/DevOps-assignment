@@ -32,9 +32,9 @@ jobs:
         run: docker compose up -d
 
       - name: Wait for Nginx to be Healthy
-        run: |
+      run: |
           echo "Waiting for Nginx to be healthy..."
-          until curl -f http://localhost:8080; do
+          until curl -f http://nginx_server:8080; do
             printf '.'
             sleep 2
           done

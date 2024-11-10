@@ -34,7 +34,7 @@ jobs:
       - name: Wait for Nginx to be Healthy
         run: |
           echo "Waiting for Nginx to be healthy..."
-          until curl -f http://localhost:8080; do
+          until docker exec nginx_tester curl -f http://nginx_server:8080; do
             printf '.'
             sleep 2
           done

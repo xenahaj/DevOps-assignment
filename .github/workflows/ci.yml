@@ -7,8 +7,10 @@ on:
     branches: [ master, '**' ]
 
 jobs:
-  build-test:
+  build-environment:
     runs-on: ubuntu-latest
+    outputs:
+      test_result: ${{ steps.determine-result.outputs.test_result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -67,7 +69,7 @@ jobs:
         run: echo "[NGINX-INFO] Nginx Logs:" && docker logs nginx_server
 
       - name: Determine Test Result
-        id: result_step
+        id: determine-result
         run: |
           echo "[TEST-INFO] Determining Test Result..."
           EXIT_CODE=$(docker inspect nginx_tester --format='{{.State.ExitCode}}')
@@ -79,15 +81,43 @@ jobs:
             echo "test_result=fail" >> $GITHUB_OUTPUT
           fi
 
+      - name: Tear Down
+        if: always()
+        run: echo "[CLEANUP-INFO] Tearing Down Environment" && docker compose down -v --rmi all --remove-orphans
+          
+
+  create-artifact:
+    needs: build-environment
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_path: artifact_result.txt
+    steps:
       - name: Create Artifact File
-        run: echo "[ARTIFACT-INFO] Creating artifact file" && echo "${{ steps.result_step.outputs.test_result }}" > ${{ steps.result_step.outputs.test_result }}
+        run: |
+          echo "[ARTIFACT-INFO] Creating artifact file"
+          echo "${{ needs.build-environment.outputs.test_result }}" > artifact_result.txt
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.result_step.outputs.test_result }}
-          path: ${{ steps.result_step.outputs.test_result }}
+          name: artifact_result
+          path: artifact_result.txt
 
-      - name: Tear Down
-        if: always()
-        run: echo "[CLEANUP-INFO] Tearing Down Environment" && docker compose down -v --rmi all --remove-orphans
+  check-test-result:
+    needs: create-artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact_result
+
+      - name: Check Test Result and Set Exit Code
+        run: |
+          TEST_RESULT=$(cat artifact_result.txt)
+          if [ "$TEST_RESULT" == "fail" ]; then
+            echo "Tests failed. Exiting with error."
+            exit 1
+          else
+            echo "Tests succeeded. Workflow passed."
+          fi

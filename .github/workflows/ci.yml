@@ -1,4 +1,3 @@
-# Example with Log Prefix in CI Workflow
 name: CI Pipeline
 
 on:
@@ -8,8 +7,10 @@ on:
     branches: [ master, '**' ]
 
 jobs:
-  build-test:
+  build-environment:
     runs-on: ubuntu-latest
+    outputs:
+      test_result: ${{ steps.determine-result.outputs.test_result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,11 +27,8 @@ jobs:
       - name: Install Netcat if Missing
         run: echo "[SETUP-INFO] Installing Netcat" && sudo apt-get install -y netcat
 
-      - name: Build Nginx Image
-        run: echo "[BUILD-INFO] Building Nginx Image" && docker build --no-cache -t nginx-image -f Dockerfile.nginx .
-
-      - name: Build Tester Image
-        run: echo "[BUILD-INFO] Building Tester Image" && docker build --no-cache -t tester-image -f Dockerfile.python .
+      - name: Run Docker Compose
+        run: echo "[RUN-INFO] Running Docker Compose with Build" && docker compose up --build -d
 
       - name: Show Image Size for Nginx Image
         run: |
@@ -41,9 +39,6 @@ jobs:
         run: |
           SIZE=$(docker images tester-image --format 'Size: {{.Size}}')
           echo "[SIZE-INFO] Tester Image Size: $SIZE"
-
-      - name: Run Docker Compose
-        run: echo "[RUN-INFO] Running Docker Compose" && docker compose up -d
 
       - name: Wait for Nginx to be Healthy
         run: |
@@ -74,7 +69,7 @@ jobs:
         run: echo "[NGINX-INFO] Nginx Logs:" && docker logs nginx_server
 
       - name: Determine Test Result
-        id: result_step
+        id: determine-result
         run: |
           echo "[TEST-INFO] Determining Test Result..."
           EXIT_CODE=$(docker inspect nginx_tester --format='{{.State.ExitCode}}')
@@ -86,15 +81,53 @@ jobs:
             echo "test_result=fail" >> $GITHUB_OUTPUT
           fi
 
+      - name: Tear Down
+        if: always()
+        run: echo "[CLEANUP-INFO] Tearing Down Environment" && docker compose down -v --rmi all --remove-orphans
+
+
+  create-artifact:
+    needs: build-environment
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.set-artifact-name.outputs.artifact_name }}
+    steps:
+      - name: Set Artifact Name
+        id: set-artifact-name
+        run: |
+          TEST_RESULT="${{ needs.build-environment.outputs.test_result }}"
+          if [ "$TEST_RESULT" == "succeeded" ]; then
+            echo "artifact_name=succeeded" >> $GITHUB_OUTPUT
+          else
+            echo "artifact_name=fail" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Create Artifact File
-        run: echo "[ARTIFACT-INFO] Creating artifact file" && echo "${{ steps.result_step.outputs.test_result }}" > ${{ steps.result_step.outputs.test_result }}
+        run: |
+          echo "[ARTIFACT-INFO] Creating artifact file"
+          echo "${{ needs.build-environment.outputs.test_result }}" > artifact_result.txt
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.result_step.outputs.test_result }}
-          path: ${{ steps.result_step.outputs.test_result }}
+          name: ${{ steps.set-artifact-name.outputs.artifact_name }}
+          path: artifact_result.txt
 
-      - name: Tear Down
-        if: always()
-        run: echo "[CLEANUP-INFO] Tearing Down Environment" && docker compose down -v --rmi all --remove-orphans
+  check-test-result:
+    needs: create-artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.create-artifact.outputs.artifact_name }}
+
+      - name: Check Test Result and Set Exit Code
+        run: |
+          TEST_RESULT=$(cat artifact_result.txt)
+          if [ "$TEST_RESULT" == "fail" ]; then
+            echo "Tests failed. Exiting with error."
+            exit 1
+          else
+            echo "Tests succeeded. Workflow passed."
+          fi

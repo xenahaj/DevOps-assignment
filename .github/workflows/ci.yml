@@ -1,4 +1,3 @@
-# Example with Log Prefix in CI Workflow
 name: CI Pipeline
 
 on:
@@ -26,11 +25,8 @@ jobs:
       - name: Install Netcat if Missing
         run: echo "[SETUP-INFO] Installing Netcat" && sudo apt-get install -y netcat
 
-      - name: Build Nginx Image
-        run: echo "[BUILD-INFO] Building Nginx Image" && docker build --no-cache -t nginx-image -f Dockerfile.nginx .
-
-      - name: Build Tester Image
-        run: echo "[BUILD-INFO] Building Tester Image" && docker build --no-cache -t tester-image -f Dockerfile.python .
+      - name: Run Docker Compose
+        run: echo "[RUN-INFO] Running Docker Compose with Build" && docker compose up --build -d
 
       - name: Show Image Size for Nginx Image
         run: |
@@ -41,9 +37,6 @@ jobs:
         run: |
           SIZE=$(docker images tester-image --format 'Size: {{.Size}}')
           echo "[SIZE-INFO] Tester Image Size: $SIZE"
-
-      - name: Run Docker Compose
-        run: echo "[RUN-INFO] Running Docker Compose" && docker compose up -d
 
       - name: Wait for Nginx to be Healthy
         run: |

@@ -40,6 +40,7 @@ jobs:
           SIZE=$(docker images tester-image --format 'Size: {{.Size}}')
           echo "[SIZE-INFO] Tester Image Size: $SIZE"
 
+      # Check Nginx health status for up to 50 seconds
       - name: Wait for Nginx to be Healthy
         run: |
           echo "[HEALTHCHECK-INFO] Waiting for Nginx to be healthy..."
@@ -84,7 +85,6 @@ jobs:
       - name: Tear Down
         if: always()
         run: echo "[CLEANUP-INFO] Tearing Down Environment" && docker compose down -v --rmi all --remove-orphans
-
 
   create-artifact:
     needs: build-environment

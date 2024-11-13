@@ -1,15 +1,18 @@
 services:
   nginx:
+    # Build nginx service from Dockerfile.nginx in current directory
     build:
       context: .
       dockerfile: Dockerfile.nginx
     image: nginx-image
     container_name: nginx_server
+    # Expose ports 8080 and 8081 for different server configurations
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "8080:8080"  # Default server
+      - "8081:8081"  # Service unavailable server
     networks:
       - app-network
+    # Check if nginx is healthy by testing port 8080 connectivity
     healthcheck:
       test: ["CMD", "sh", "-c", "nc -z localhost 8080 || exit 1"]
       interval: 20s
@@ -17,17 +20,20 @@ services:
       retries: 3
 
   tester:
+    # Build tester service from Dockerfile.python in current directory
     build:
       context: .
       dockerfile: Dockerfile.python
     image: tester-image
     container_name: nginx_tester
+    # Wait for nginx service to be healthy before starting
     depends_on:
       nginx:
         condition: service_healthy
     networks:
       - app-network
 
+# Define bridge network for service communication
 networks:
   app-network:
     driver: bridge

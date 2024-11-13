@@ -3,9 +3,11 @@ import sys
 import time
 import logging
 
+# Configure logging with timestamp and level
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
 def check_server(url, expected_status, retries=5, delay=2):
+    #Check if server returns expected status code with retries
     for attempt in range(1, retries + 1):
         try:
             response = requests.get(url, timeout=5)
@@ -23,6 +25,7 @@ def check_server(url, expected_status, retries=5, delay=2):
     return False
 
 def main():
+    # Define servers to test with expected status codes
     servers = [
         {"url": "http://nginx:8080", "expected_status": 200},
         {"url": "http://nginx:8081", "expected_status": 503}

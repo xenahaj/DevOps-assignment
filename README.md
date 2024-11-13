@@ -54,6 +54,7 @@ A GitHub Actions workflow automates building the images, running the tests, and 
     - Since I'm more familiar with Python, I Opted for it over Go although there was a potential for a further decrease of the image size.
 
 **The Image Size for each:**
+
 <img width="971" alt="image" src="https://github.com/user-attachments/assets/0315417b-c6cf-48e5-833e-625b1aec8274">
 
 ## Additional Notes

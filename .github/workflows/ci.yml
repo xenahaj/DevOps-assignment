@@ -84,7 +84,7 @@ jobs:
       - name: Tear Down
         if: always()
         run: echo "[CLEANUP-INFO] Tearing Down Environment" && docker compose down -v --rmi all --remove-orphans
-          
+
 
   create-artifact:
     needs: build-environment
@@ -97,11 +97,11 @@ jobs:
         run: |
           TEST_RESULT="${{ needs.build-environment.outputs.test_result }}"
           if [ "$TEST_RESULT" == "succeeded" ]; then
-            echo "::set-output name=artifact_name::succeeded"
+            echo "artifact_name=succeeded" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=artifact_name::fail"
+            echo "artifact_name=fail" >> $GITHUB_OUTPUT
           fi
-
+          
       - name: Create Artifact File
         run: |
           echo "[ARTIFACT-INFO] Creating artifact file"
